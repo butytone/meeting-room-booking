@@ -1,0 +1,60 @@
+// 学院会议室预订系统 - 数据库设计
+// PostgreSQL（Neon 等云数据库），适配 Vercel 等 serverless 部署
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- 用户（教师） ----------
+model User {
+  id        String   @id @default(cuid())
+  workId    String   @unique // 工号，登录用
+  password  String   // 后续可改为 hash，或接入学校认证后移除
+  name      String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+}
+
+// ---------- 会议室 ----------
+model Room {
+  id          String   @id @default(cuid())
+  name        String   // 会议室名称
+  capacity    Int      // 容量（人数）
+  facilities  String   // 设施描述，如 "投影仪,白板,视频会议" 或存 JSON
+  photoUrls   String?  // 照片 URL 列表，逗号分隔或 JSON 数组
+  description String?  // 备注
+  isActive    Boolean  @default(true) // 是否可用（软删除/维护中）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings Booking[]
+}
+
+// ---------- 预订记录 ----------
+model Booking {
+  id        String   @id @default(cuid())
+  userId    String
+  roomId    String
+  date      String   // 日期 YYYY-MM-DD，便于按日查询与冲突检测
+  startTime String   // 开始时间，如 "09:00"
+  endTime   String   // 结束时间，如 "10:30"
+  purpose   String?  // 用途说明
+  status    String   @default("confirmed") // confirmed | cancelled
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, date])
+  @@index([userId, date])
+  @@index([date, startTime, endTime])
+}
