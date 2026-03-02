@@ -33,7 +33,7 @@ npm run dev
 
 浏览器打开 [http://localhost:3000](http://localhost:3000)，未登录会跳转登录页。
 
-**部署到公网（无服务器、随时可访问）**：见 [DEPLOY.md](./DEPLOY.md)，推荐 **Vercel + Neon** 免费方案。
+**部署到公网（无服务器、随时可访问）**：见 [DEPLOY.md](./DEPLOY.md)，推荐 **Vercel + Neon** 免费方案。**大陆访问**：见 [DEPLOY-CN.md](./DEPLOY-CN.md)；**腾讯云一步步**：见 [DEPLOY-TENCENT.md](./DEPLOY-TENCENT.md)。
 
 ## 功能
 
