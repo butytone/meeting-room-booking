@@ -339,6 +339,65 @@ pm2 restart meeting-book
 
 ---
 
+## 第十二步：把 IP 改成域名访问
+
+### 1. 准备一个域名
+
+- **自己买域名**：在腾讯云 DNSPod、阿里云万网、GoDaddy 等购买（如 `meeting.example.com`）。
+- **用学校/单位域名**：向管理员申请子域名，例如 `meeting.学院.edu.cn`，并让你做解析或把 A 记录指向你的服务器 IP。
+
+### 2. 做 DNS 解析（把域名指到服务器）
+
+在**域名服务商**的解析控制台里添加一条 **A 记录**：
+
+| 记录类型 | 主机记录 | 记录值 | 说明 |
+|----------|----------|--------|------|
+| A | @ 或 www 或 meeting | **146.56.195.78**（你的服务器公网 IP） | 用 @ 表示主域名，用 meeting 表示 meeting.xxx.com |
+
+- 例如要访问 `meeting.xxx.com`：主机记录填 **meeting**，记录值填 **146.56.195.78**。
+- 保存后等待几分钟到几十分钟生效（可用 `ping meeting.xxx.com` 看是否解析到该 IP）。
+
+### 3. 在服务器上改 Nginx 配置
+
+SSH 登录服务器后执行：
+
+```bash
+sudo nano /etc/nginx/sites-available/meeting-book
+```
+
+把其中的 `server_name _;` 改成你的域名，例如：
+
+```nginx
+server_name meeting.你的域名.com;
+```
+
+若同时想用 www：`server_name meeting.你的域名.com www.meeting.你的域名.com;`  
+保存（Ctrl+O，回车）并退出（Ctrl+X）。
+
+然后检查并重载 Nginx：
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 4. 用域名访问
+
+浏览器打开 **http://你的域名**（如 `http://meeting.你的域名.com`），应能打开会议室预订系统。
+
+### 5. 可选：开启 HTTPS（推荐）
+
+域名能访问后，在服务器上执行：
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d 你的域名
+```
+
+按提示选邮箱、同意条款，certbot 会自动配置 HTTPS。之后用 **https://你的域名** 访问即可，证书会自动续期。
+
+---
+
 ## 常见问题
 
 **Q：SSH 连不上（超时或拒绝）**  

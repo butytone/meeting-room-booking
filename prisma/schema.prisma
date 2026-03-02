@@ -14,8 +14,9 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   workId    String   @unique // 工号，登录用
-  password  String   // 后续可改为 hash，或接入学校认证后移除
+  password  String   // bcrypt 哈希
   name      String
+  phone     String?  // 手机号，注册时填写
   email     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

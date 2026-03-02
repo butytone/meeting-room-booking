@@ -58,6 +58,12 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (endTime <= startTime) {
+      return NextResponse.json(
+        { error: "结束时间必须晚于开始时间" },
+        { status: 400 }
+      );
+    }
     const room = await prisma.room.findUnique({ where: { id: roomId } });
     if (!room || !room.isActive) {
       return NextResponse.json({ error: "会议室不存在或已停用" }, { status: 400 });

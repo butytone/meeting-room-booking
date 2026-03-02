@@ -20,11 +20,27 @@ export default function BookingForm({ rooms, defaultRoomId, onSuccess }: Props) 
   const [endTime, setEndTime] = useState("10:00");
   const [purpose, setPurpose] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const endTimeOptions = TIME_OPTIONS.filter((t) => t > startTime);
+
+  const handleStartTimeChange = (t: string) => {
+    setStartTime(t);
+    if (endTime <= t) {
+      const next = TIME_OPTIONS.find((opt) => opt > t);
+      setEndTime(next ?? t);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
+    if (endTime <= startTime) {
+      setError("结束时间必须晚于开始时间");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/bookings", {
@@ -46,7 +62,9 @@ export default function BookingForm({ rooms, defaultRoomId, onSuccess }: Props) 
       setRoomId("");
       setDate("");
       setPurpose("");
+      setSuccess("预订成功！");
       onSuccess?.();
+      setTimeout(() => setSuccess(""), 4000);
     } finally {
       setLoading(false);
     }
@@ -58,6 +76,7 @@ export default function BookingForm({ rooms, defaultRoomId, onSuccess }: Props) 
     <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-white p-4 shadow-sm">
       <h3 className="font-medium">新建预订</h3>
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {success && <p className="text-sm text-green-600 font-medium">{success}</p>}
       <div>
         <label className="block text-sm text-gray-600">会议室</label>
         <select
@@ -95,7 +114,7 @@ export default function BookingForm({ rooms, defaultRoomId, onSuccess }: Props) 
           <label className="block text-sm text-gray-600">开始时间</label>
           <select
             value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
+            onChange={(e) => handleStartTimeChange(e.target.value)}
             className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
           >
             {TIME_OPTIONS.map((t) => (
@@ -110,9 +129,13 @@ export default function BookingForm({ rooms, defaultRoomId, onSuccess }: Props) 
             onChange={(e) => setEndTime(e.target.value)}
             className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
           >
-            {TIME_OPTIONS.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
+            {endTimeOptions.length > 0 ? (
+              endTimeOptions.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))
+            ) : (
+              <option value={startTime}>请先选开始时间</option>
+            )}
           </select>
         </div>
       </div>
