@@ -26,6 +26,7 @@ export default async function MyBookingsPage() {
               <p className="font-medium">{b.room.name}</p>
               <p className="text-sm text-gray-600">
                 {b.date} {b.startTime}–{b.endTime}
+                <span className="ml-2">预订人：{(b.bookerName && b.bookerName.trim()) ? b.bookerName.trim() : "—"}</span>
               </p>
               {b.purpose && (
                 <p className="text-sm text-gray-500">{b.purpose}</p>

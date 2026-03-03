@@ -22,7 +22,7 @@ export default async function BookPage({
     <div>
       <h1 className="mb-6 text-xl font-semibold">预订会议室</h1>
       <div className="max-w-md">
-        <BookingForm rooms={rooms} defaultRoomId={defaultRoomId ?? undefined} />
+        <BookingForm rooms={rooms} defaultRoomId={defaultRoomId ?? undefined} defaultBookerName={user.name} />
       </div>
     </div>
   );

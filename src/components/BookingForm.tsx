@@ -4,7 +4,7 @@ import { useState } from "react";
 import RoomBookedSlotsTable from "./RoomBookedSlotsTable";
 
 type Room = { id: string; name: string };
-type Props = { rooms: Room[]; defaultRoomId?: string; onSuccess?: () => void };
+type Props = { rooms: Room[]; defaultRoomId?: string; defaultBookerName?: string; onSuccess?: () => void };
 
 const TIME_OPTIONS = [
   "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -13,9 +13,10 @@ const TIME_OPTIONS = [
   "20:00", "20:30", "21:00",
 ];
 
-export default function BookingForm({ rooms, defaultRoomId, onSuccess }: Props) {
+export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = "", onSuccess }: Props) {
   const [roomId, setRoomId] = useState(defaultRoomId ?? "");
   const [date, setDate] = useState("");
+  const [bookerName, setBookerName] = useState(defaultBookerName);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [purpose, setPurpose] = useState("");
@@ -41,6 +42,10 @@ export default function BookingForm({ rooms, defaultRoomId, onSuccess }: Props) 
       setError("结束时间必须晚于开始时间");
       return;
     }
+    if (!bookerName.trim()) {
+      setError("预订人不能为空");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/bookings", {
@@ -51,6 +56,7 @@ export default function BookingForm({ rooms, defaultRoomId, onSuccess }: Props) 
           date,
           startTime,
           endTime,
+          bookerName: bookerName.trim() || undefined,
           purpose: purpose || undefined,
         }),
       });
@@ -90,6 +96,17 @@ export default function BookingForm({ rooms, defaultRoomId, onSuccess }: Props) 
             <option key={r.id} value={r.id}>{r.name}</option>
           ))}
         </select>
+      </div>
+      <div>
+        <label className="block text-sm text-gray-600">预订人 <span className="text-red-500">*</span></label>
+        <input
+          type="text"
+          required
+          value={bookerName}
+          onChange={(e) => setBookerName(e.target.value)}
+          placeholder="默认当前用户，可修改"
+          className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
+        />
       </div>
       <div>
         <label className="block text-sm text-gray-600">日期</label>

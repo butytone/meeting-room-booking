@@ -32,11 +32,11 @@ function slotEnd(slot: string): string {
   return TIME_SLOTS[idx + 1];
 }
 
-function getBookerForSlot(bookings: BookedSlot[], slotStart: string): string | null {
+function getBookingForSlot(bookings: BookedSlot[], slotStart: string): BookedSlot | null {
   const slotEndTime = slotEnd(slotStart);
   for (const b of bookings) {
     if (b.startTime < slotEndTime && b.endTime > slotStart) {
-      return b.userName ?? null;
+      return b;
     }
   }
   return null;
@@ -98,7 +98,7 @@ export default function RoomBookedSlotsTable({
   return (
     <div className={`overflow-x-auto rounded-lg border border-gray-200 bg-white ${className}`}>
       <h4 className="border-b border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700">
-        已预订时段（纵列：时间段，横列：日期）
+        已预订时段（纵列：日期，横列：时间段）
       </h4>
       {loading && (
         <div className="p-4 text-center text-sm text-gray-500">加载中…</div>
@@ -116,9 +116,10 @@ export default function RoomBookedSlotsTable({
               {TIME_SLOTS.map((slot) => (
                 <th
                   key={slot}
-                  className="min-w-[72px] border border-gray-200 px-1 py-2 font-medium text-gray-700"
+                  className="min-w-[80px] border border-gray-200 px-1 py-2 font-medium text-gray-700"
+                  title={`${slot}–${slotEnd(slot)}`}
                 >
-                  {slot}
+                  {slot}–{slotEnd(slot)}
                 </th>
               ))}
             </tr>
@@ -130,7 +131,7 @@ export default function RoomBookedSlotsTable({
                   {formatDateLabel(date)}
                 </td>
                 {TIME_SLOTS.map((slot) => {
-                  const booker = getBookerForSlot(
+                  const booking = getBookingForSlot(
                     dataByDate[date] ?? [],
                     slot
                   );
@@ -138,9 +139,10 @@ export default function RoomBookedSlotsTable({
                     <td
                       key={slot}
                       className="border border-gray-200 px-1 py-1.5 text-center text-gray-800"
+                      title={booking ? `${booking.userName ?? ""} ${booking.startTime}–${booking.endTime}` : undefined}
                     >
-                      {booker ? (
-                        <span className="text-gray-800">{booker}</span>
+                      {booking ? (
+                        <span className="text-gray-800">{booking.userName || "—"}</span>
                       ) : (
                         <span className="text-gray-400">—</span>
                       )}

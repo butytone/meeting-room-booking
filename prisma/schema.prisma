@@ -41,16 +41,17 @@ model Room {
 
 // ---------- 预订记录 ----------
 model Booking {
-  id        String   @id @default(cuid())
-  userId    String
-  roomId    String
-  date      String   // 日期 YYYY-MM-DD，便于按日查询与冲突检测
-  startTime String   // 开始时间，如 "09:00"
-  endTime   String   // 结束时间，如 "10:30"
-  purpose   String?  // 用途说明
-  status    String   @default("confirmed") // confirmed | cancelled
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  userId     String
+  roomId     String
+  date       String   // 日期 YYYY-MM-DD，便于按日查询与冲突检测
+  startTime  String   // 开始时间，如 "09:00"
+  endTime    String   // 结束时间，如 "10:30"
+  bookerName String?  // 预订人姓名，展示用，默认登录用户姓名
+  purpose    String?  // 用途说明
+  status     String   @default("confirmed") // confirmed | cancelled
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)

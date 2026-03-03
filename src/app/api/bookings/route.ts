@@ -25,6 +25,7 @@ export async function GET(request: Request) {
         startTime: true,
         endTime: true,
         purpose: true,
+        bookerName: true,
         user: { select: { name: true } },
       },
     });
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
         startTime: b.startTime,
         endTime: b.endTime,
         purpose: b.purpose,
-        userName: b.user.name,
+        userName: (b.bookerName && b.bookerName.trim()) ? b.bookerName.trim() : "",
       }))
     );
   }
@@ -45,11 +46,12 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
   try {
     const body = await request.json();
-    const { roomId, date, startTime, endTime, purpose } = body as {
+    const { roomId, date, startTime, endTime, bookerName, purpose } = body as {
       roomId?: string;
       date?: string;
       startTime?: string;
       endTime?: string;
+      bookerName?: string;
       purpose?: string;
     };
     if (!roomId || !date || !startTime || !endTime) {
@@ -61,6 +63,13 @@ export async function POST(request: Request) {
     if (endTime <= startTime) {
       return NextResponse.json(
         { error: "结束时间必须晚于开始时间" },
+        { status: 400 }
+      );
+    }
+    const name = bookerName?.trim();
+    if (!name) {
+      return NextResponse.json(
+        { error: "预订人不能为空" },
         { status: 400 }
       );
     }
@@ -82,6 +91,7 @@ export async function POST(request: Request) {
         date,
         startTime,
         endTime,
+        bookerName: name,
         purpose: purpose ?? null,
       },
       include: { room: true },
