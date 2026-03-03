@@ -26,11 +26,12 @@ model Namespace {
 model User {
   id          String    @id @default(cuid())
   namespaceId String?   // 所属学院；为空时需在 seed 中回填
-  workId      String    // 工号，登录用（同一 namespace 内唯一）
+  workId      String    // 工号，登录用（全局唯一）
   password    String    // bcrypt 哈希
   name        String
   phone       String?   // 手机号，注册时填写
   email       String?
+  role        String    @default("user") // user | admin，每个 namespace 一个管理员
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

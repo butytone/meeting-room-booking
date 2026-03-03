@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function Nav({ name, namespaceName }: { name: string | null; namespaceName?: string | null }) {
+export default function Nav({
+  name,
+  namespaceName,
+  role,
+}: {
+  name: string | null;
+  namespaceName?: string | null;
+  role?: string | null;
+}) {
   const router = useRouter();
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -26,11 +34,28 @@ export default function Nav({ name, namespaceName }: { name: string | null; name
               <Link href="/rooms" className="text-gray-700 hover:text-blue-600">
                 会议室
               </Link>
-              <Link href="/book" className="text-gray-700 hover:text-blue-600">
-                预订
-              </Link>
-              <Link href="/my-bookings" className="text-gray-700 hover:text-blue-600">
-                我的预订
+              {role !== "admin" && (
+                <>
+                  <Link href="/book" className="text-gray-700 hover:text-blue-600">
+                    预订
+                  </Link>
+                  <Link href="/my-bookings" className="text-gray-700 hover:text-blue-600">
+                    我的预订
+                  </Link>
+                </>
+              )}
+              {role === "admin" && (
+                <>
+                  <Link href="/admin/rooms" className="text-gray-700 hover:text-blue-600">
+                    管理会议室
+                  </Link>
+                  <Link href="/admin/users" className="text-gray-700 hover:text-blue-600">
+                    管理用户
+                  </Link>
+                </>
+              )}
+              <Link href="/change-password" className="text-gray-700 hover:text-blue-600">
+                修改密码
               </Link>
               {namespaceName && (
                 <span className="rounded bg-gray-100 px-2 py-0.5 text-sm text-gray-600">{namespaceName}</span>

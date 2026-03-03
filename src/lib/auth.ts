@@ -13,6 +13,7 @@ export type SessionUser = {
   name: string;
   namespaceId: string | null;
   namespaceName: string | null;
+  role: string; // "user" | "admin"
 };
 
 export async function getSession(): Promise<SessionUser | null> {
@@ -29,6 +30,7 @@ export async function getSession(): Promise<SessionUser | null> {
         workId: true,
         name: true,
         namespaceId: true,
+        role: true,
         namespace: { select: { name: true } },
       },
     });
@@ -39,6 +41,7 @@ export async function getSession(): Promise<SessionUser | null> {
       name: user.name,
       namespaceId: user.namespaceId,
       namespaceName: user.namespace?.name ?? null,
+      role: user.role ?? "user",
     };
   } catch {
     return null;

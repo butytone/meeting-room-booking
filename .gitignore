@@ -10,6 +10,9 @@ coverage
 .next/
 out/
 
+# 用户上传的会议室照片（可选保留则移除此行）
+public/uploads/
+
 # production
 build
 dist

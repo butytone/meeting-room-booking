@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       name: user.name,
       namespaceId: user.namespaceId,
       namespaceName: user.namespace?.name ?? null,
+      role: user.role ?? "user",
     });
     return NextResponse.json({
       user: {
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
         workId: user.workId,
         name: user.name,
         namespaceName: user.namespace?.name ?? null,
+        role: user.role ?? "user",
       },
     });
   } catch (e) {

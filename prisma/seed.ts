@@ -30,14 +30,42 @@ async function main() {
     console.log("Backfill: users", updatedUsers.count, "rooms", updatedRooms.count, "-> default namespace");
   }
 
-  const hash = await bcrypt.hash("123456", 10);
+  const defaultPassword = await bcrypt.hash("123456", 10);
+
+  // 每个 namespace 一个管理员账号（系统预设，可登录后自行修改密码）
+  const adminTest = await prisma.user.upsert({
+    where: { workId: "admin_test" },
+    update: { role: "admin", name: "测试学院管理员" },
+    create: {
+      namespaceId: defaultNs.id,
+      workId: "admin_test",
+      password: defaultPassword,
+      name: "测试学院管理员",
+      role: "admin",
+    },
+  });
+  console.log("Seed admin (测试学院):", adminTest.workId, "密码: 123456");
+
+  const adminSds = await prisma.user.upsert({
+    where: { workId: "admin_sds" },
+    update: { role: "admin", name: "统计与数据科学学院管理员" },
+    create: {
+      namespaceId: computerNs.id,
+      workId: "admin_sds",
+      password: defaultPassword,
+      name: "统计与数据科学学院管理员",
+      role: "admin",
+    },
+  });
+  console.log("Seed admin (统计与数据科学学院):", adminSds.workId, "密码: 123456");
+
   const user = await prisma.user.upsert({
     where: { workId: "10001" },
     update: {},
     create: {
       namespaceId: defaultNs.id,
       workId: "10001",
-      password: hash,
+      password: defaultPassword,
       name: "张老师",
       email: "zhang@example.edu.cn",
     },
