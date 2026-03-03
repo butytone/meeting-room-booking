@@ -19,6 +19,13 @@ export async function GET(request: Request) {
   const roomId = searchParams.get("roomId");
   const date = searchParams.get("date");
   if (roomId && date) {
+    const room = await prisma.room.findUnique({
+      where: { id: roomId },
+      select: { namespaceId: true },
+    });
+    if (!room || room.namespaceId !== user.namespaceId) {
+      return NextResponse.json({ error: "无权查看该会议室" }, { status: 403 });
+    }
     const existing = await prisma.booking.findMany({
       where: { roomId, date, status: "confirmed" },
       select: {
@@ -76,6 +83,9 @@ export async function POST(request: Request) {
     const room = await prisma.room.findUnique({ where: { id: roomId } });
     if (!room || !room.isActive) {
       return NextResponse.json({ error: "会议室不存在或已停用" }, { status: 400 });
+    }
+    if (room.namespaceId !== user.namespaceId) {
+      return NextResponse.json({ error: "无权预订该会议室" }, { status: 403 });
     }
     const existing = await prisma.booking.findMany({
       where: { roomId, date, status: "confirmed" },

@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+type Namespace = { id: string; name: string; slug: string };
+
 export default function RegisterForm() {
+  const [namespaces, setNamespaces] = useState<Namespace[]>([]);
+  const [namespaceId, setNamespaceId] = useState("");
   const [workId, setWorkId] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -12,6 +16,13 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/namespaces")
+      .then((res) => res.json())
+      .then((data: Namespace[]) => setNamespaces(data))
+      .catch(() => setNamespaces([]));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +33,7 @@ export default function RegisterForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          namespaceId: namespaceId.trim() || undefined,
           workId: workId.trim(),
           name: name.trim(),
           phone: phone.trim(),
@@ -45,6 +57,23 @@ export default function RegisterForm() {
       <h1 className="mb-6 text-xl font-semibold">用户注册</h1>
       <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-white p-6 shadow-sm">
         {error && <p className="text-sm text-red-600">{error}</p>}
+        <div>
+          <label className="block text-sm text-gray-600">所属学院 <span className="text-red-500">*</span></label>
+          <select
+            required
+            value={namespaceId}
+            onChange={(e) => setNamespaceId(e.target.value)}
+            className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
+          >
+            <option value="">请选择学院</option>
+            {namespaces.map((ns) => (
+              <option key={ns.id} value={ns.id}>{ns.name}</option>
+            ))}
+          </select>
+          {namespaces.length === 0 && (
+            <p className="mt-1 text-xs text-gray-500">暂无学院数据，请联系管理员添加学院后再注册。</p>
+          )}
+        </div>
         <div>
           <label className="block text-sm text-gray-600">工号</label>
           <input

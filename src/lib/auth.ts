@@ -7,7 +7,13 @@ const SECRET = new TextEncoder().encode(
 );
 const COOKIE_NAME = "session";
 
-export type SessionUser = { id: string; workId: string; name: string };
+export type SessionUser = {
+  id: string;
+  workId: string;
+  name: string;
+  namespaceId: string | null;
+  namespaceName: string | null;
+};
 
 export async function getSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
@@ -18,9 +24,22 @@ export async function getSession(): Promise<SessionUser | null> {
     const userId = payload.sub as string;
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, workId: true, name: true },
+      select: {
+        id: true,
+        workId: true,
+        name: true,
+        namespaceId: true,
+        namespace: { select: { name: true } },
+      },
     });
-    return user;
+    if (!user) return null;
+    return {
+      id: user.id,
+      workId: user.workId,
+      name: user.name,
+      namespaceId: user.namespaceId,
+      namespaceName: user.namespace?.name ?? null,
+    };
   } catch {
     return null;
   }

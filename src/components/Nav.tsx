@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function Nav({ name }: { name: string | null }) {
+export default function Nav({ name, namespaceName }: { name: string | null; namespaceName?: string | null }) {
   const router = useRouter();
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -32,6 +32,9 @@ export default function Nav({ name }: { name: string | null }) {
               <Link href="/my-bookings" className="text-gray-700 hover:text-blue-600">
                 我的预订
               </Link>
+              {namespaceName && (
+                <span className="rounded bg-gray-100 px-2 py-0.5 text-sm text-gray-600">{namespaceName}</span>
+              )}
               <span className="text-gray-500">{name}</span>
               <button
                 type="button"

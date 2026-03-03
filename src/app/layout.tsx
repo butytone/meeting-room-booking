@@ -24,7 +24,7 @@ export default async function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="min-h-screen antialiased">
-        <Nav name={user?.name ?? null} />
+        <Nav name={user?.name ?? null} namespaceName={user?.namespaceName ?? null} />
         <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
       </body>
     </html>

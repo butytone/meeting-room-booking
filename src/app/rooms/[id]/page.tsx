@@ -11,9 +11,10 @@ export default async function RoomDetailPage({
 }) {
   const user = await getSession();
   if (!user) redirect("/login");
+  if (!user.namespaceId) redirect("/login");
   const { id } = await params;
   const room = await prisma.room.findUnique({ where: { id } });
-  if (!room || !room.isActive) notFound();
+  if (!room || !room.isActive || room.namespaceId !== user.namespaceId) notFound();
 
   const photos = room.photoUrls ? room.photoUrls.split(",").map((s) => s.trim()).filter(Boolean) : [];
 

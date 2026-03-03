@@ -5,11 +5,12 @@ import bcrypt from "bcryptjs";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { workId, name, phone, password } = body as {
+    const { workId, name, phone, password, namespaceId } = body as {
       workId?: string;
       name?: string;
       phone?: string;
       password?: string;
+      namespaceId?: string;
     };
     const w = workId?.trim();
     const n = name?.trim();
@@ -17,6 +18,12 @@ export async function POST(request: Request) {
     if (!w || !n || !password) {
       return NextResponse.json(
         { error: "请填写工号、姓名和密码" },
+        { status: 400 }
+      );
+    }
+    if (!namespaceId?.trim()) {
+      return NextResponse.json(
+        { error: "请选择所属学院" },
         { status: 400 }
       );
     }
@@ -39,9 +46,14 @@ export async function POST(request: Request) {
         { status: 409 }
       );
     }
+    const ns = await prisma.namespace.findUnique({ where: { id: namespaceId.trim() } });
+    if (!ns) {
+      return NextResponse.json({ error: "所选学院不存在" }, { status: 400 });
+    }
     const hash = await bcrypt.hash(password, 10);
     await prisma.user.create({
       data: {
+        namespaceId: ns.id,
         workId: w,
         name: n,
         phone: p,

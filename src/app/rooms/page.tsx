@@ -6,9 +6,10 @@ import RoomCard from "@/components/RoomCard";
 export default async function RoomsPage() {
   const user = await getSession();
   if (!user) redirect("/login");
+  if (!user.namespaceId) redirect("/login");
 
   const rooms = await prisma.room.findMany({
-    where: { isActive: true },
+    where: { namespaceId: user.namespaceId, isActive: true },
     orderBy: { name: "asc" },
   });
 

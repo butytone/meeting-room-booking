@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasConflict } from "@/lib/time";
 
 export async function GET(request: Request) {
+  const user = await getSession();
+  if (!user?.namespaceId) {
+    return NextResponse.json({ error: "未登录或未归属学院" }, { status: 401 });
+  }
   const { searchParams } = new URL(request.url);
   const activeOnly = searchParams.get("active") !== "false";
   const date = searchParams.get("date");
@@ -10,7 +15,10 @@ export async function GET(request: Request) {
   const endTime = searchParams.get("endTime");
 
   const rooms = await prisma.room.findMany({
-    where: activeOnly ? { isActive: true } : undefined,
+    where: {
+      namespaceId: user.namespaceId,
+      ...(activeOnly ? { isActive: true } : {}),
+    },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });

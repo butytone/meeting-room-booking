@@ -10,10 +10,13 @@ export default async function BookPage({
 }) {
   const user = await getSession();
   if (!user) redirect("/login");
+  if (!user.namespaceId) {
+    redirect("/login"); // 未归属学院时视为未就绪，可后续做单独提示页
+  }
   const { roomId: defaultRoomId } = await searchParams;
 
   const rooms = await prisma.room.findMany({
-    where: { isActive: true },
+    where: { namespaceId: user.namespaceId, isActive: true },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });
