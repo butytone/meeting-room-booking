@@ -170,6 +170,8 @@ DATABASE_URL="postgresql://neondb_owner:xxxx@ep-xxx-pooler.xxx.aws.neon.tech/neo
 JWT_SECRET="请换成至少20位随机字符串"
 ```
 
+- 若当前用 **http://** 访问（未配置 HTTPS），**不要**在 .env 里加 `COOKIE_SECURE=true`，否则登录后 Cookie 不生效、会一直停在登录页。等配置好 HTTPS 后用域名访问时，再在 .env 中增加一行 `COOKIE_SECURE=true`。
+
 **7.3 保存并退出 nano**
 
 - 按 **Ctrl + O** 保存；
@@ -399,6 +401,12 @@ sudo certbot --nginx -d 你的域名
 ---
 
 ## 常见问题
+
+**Q：点击登录后一直停在登录页，进不到首页？**
+
+- 多半是会话 Cookie 在 **HTTP** 下未生效。代码里只有在 `.env` 中设置 `COOKIE_SECURE=true` 时才会给 Cookie 加 Secure；若未设置，Cookie 不会带 Secure，可在 HTTP 下正常使用。
+- **请确认**服务器 `.env` 里**没有**写 `COOKIE_SECURE=true`。若当前用 `http://你的IP` 访问，不要加这一行。保存后执行 `pm2 restart meeting-book` 再试登录。
+- 若已加 `COOKIE_SECURE=true`，请删掉该行或改为 `COOKIE_SECURE=false`，重启应用后再登录。
 
 **Q：已在腾讯云开启了 HTTPS，但用 https://146.56.195.78/dashboard 打不开？**
 

@@ -55,12 +55,14 @@ export async function setSession(user: SessionUser): Promise<void> {
     .setExpirationTime("7d")
     .sign(SECRET);
   const cookieStore = await cookies();
+  // 仅当明确启用 HTTPS 时设置 Secure（用 HTTP 访问时须设 COOKIE_SECURE=false，否则登录后 Cookie 不生效）
+  const secure = process.env.COOKIE_SECURE === "true";
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure,
   });
 }
 
