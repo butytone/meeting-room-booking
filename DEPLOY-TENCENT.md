@@ -400,6 +400,25 @@ sudo certbot --nginx -d 你的域名
 
 ## 常见问题
 
+**Q：已在腾讯云开启了 HTTPS，但用 https://146.56.195.78/dashboard 打不开？**
+
+- **原因一：HTTPS 不能直接用 IP 访问。**  
+  SSL 证书是发给**域名**的（例如 `meeting.xxx.edu.cn`），不是发给 IP 的。所以浏览器访问 `https://146.56.195.78` 时会证书不匹配或无法建立安全连接，属于正常现象。
+
+- **正确做法：用域名 + 在服务器上配置 HTTPS**
+  1. **先有一个域名**，并在域名服务商处把该域名的 **A 记录** 解析到 `146.56.195.78`（见上文第十二步）。
+  2. **在腾讯云轻量服务器防火墙里放行 443 端口**（若未放行）：  
+     轻量应用服务器 → 你的实例 → 防火墙 → 添加规则：端口 **443**，协议 **TCP**，策略 **允许**。
+  3. **SSH 登录服务器**，在服务器上执行（把 `你的域名` 换成实际域名，如 `meeting.xxx.edu.cn`）：
+     ```bash
+     sudo apt install -y certbot python3-certbot-nginx
+     sudo certbot --nginx -d 你的域名
+     ```
+     按提示输入邮箱、同意条款，certbot 会自动为 Nginx 配置 443 和证书。
+  4. 之后用 **https://你的域名/dashboard** 访问（不要用 `https://146.56.195.78`）。
+
+- 若你在腾讯云控制台用的是**负载均衡（CLB）的 HTTPS**：证书是绑在「域名」上的，访问时也要用控制台里绑定的那个域名，不能用 IP。同时确保后端转发到你这台轻量服务器的 80 或 3000 端口且安全组/防火墙已放行。
+
 **Q：SSH 连不上（超时或拒绝）**  
 - 检查第三步防火墙是否放行了 **22** 端口。  
 - 确认 IP 和 root 密码无误（密码粘贴时注意不要多空格）。
@@ -412,6 +431,24 @@ sudo certbot --nginx -d 你的域名
 - 在域名服务商处把域名 A 记录解析到这台服务器的公网 IP。  
 - 把 Nginx 里 `server_name _;` 改成 `server_name 你的域名;`，然后执行 `nginx -t` 和 `systemctl reload nginx`。  
 - 若要 HTTPS，可再安装 `certbot` 用 Let's Encrypt 免费证书（见 DEPLOY-CN.md 第八节）。
+
+**Q：如何在服务器上修改 JWT_SECRET？修改后要执行什么？**
+
+1. **SSH 登录服务器**后，进入项目目录并编辑 `.env`：
+   ```bash
+   cd /var/www/meeting-book
+   nano .env
+   ```
+2. 找到 `JWT_SECRET=` 这一行，把等号后面的值改成你在本地生成的**强随机字符串**（整段替换，保留引号）。例如：
+   ```env
+   JWT_SECRET="你粘贴过来的那串随机字符"
+   ```
+3. **Ctrl + O** 保存，回车，**Ctrl + X** 退出。
+4. **必须重启应用**，新的密钥才会生效：
+   ```bash
+   pm2 restart meeting-book
+   ```
+5. **说明**：修改 JWT_SECRET 后，之前签发的登录态都会失效，所有用户需要重新登录，这是正常现象。
 
 **Q：数据库连不上**  
 - 确认服务器上 `.env` 里的 `DATABASE_URL` 和本地/Neon 控制台中的一致（尤其是密码和 `-pooler` 地址）。  

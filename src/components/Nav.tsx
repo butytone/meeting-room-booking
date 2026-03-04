@@ -31,9 +31,11 @@ export default function Nav({
               <Link href="/dashboard" className="text-gray-700 hover:text-blue-600">
                 首页
               </Link>
-              <Link href="/rooms" className="text-gray-700 hover:text-blue-600">
-                会议室
-              </Link>
+              {role !== "admin" && (
+                <Link href="/rooms" className="text-gray-700 hover:text-blue-600">
+                  会议室
+                </Link>
+              )}
               {role !== "admin" && (
                 <>
                   <Link href="/book" className="text-gray-700 hover:text-blue-600">
