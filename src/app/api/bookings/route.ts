@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasConflict } from "@/lib/time";
+import { getRecurrenceDates } from "@/lib/recurrence";
+import { randomBytes } from "crypto";
 
 export async function GET(request: Request) {
   const user = await getSession();
@@ -53,13 +55,15 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 });
   try {
     const body = await request.json();
-    const { roomId, date, startTime, endTime, bookerName, purpose } = body as {
+    const { roomId, date, startTime, endTime, bookerName, purpose, recurrenceRule, recurrenceEndDate } = body as {
       roomId?: string;
       date?: string;
       startTime?: string;
       endTime?: string;
       bookerName?: string;
       purpose?: string;
+      recurrenceRule?: string;
+      recurrenceEndDate?: string;
     };
     if (!roomId || !date || !startTime || !endTime) {
       return NextResponse.json(
@@ -87,26 +91,53 @@ export async function POST(request: Request) {
     if (room.namespaceId !== user.namespaceId) {
       return NextResponse.json({ error: "无权预订该会议室" }, { status: 403 });
     }
-    const existing = await prisma.booking.findMany({
-      where: { roomId, date, status: "confirmed" },
-      select: { startTime: true, endTime: true },
-    });
-    if (hasConflict(startTime, endTime, existing)) {
-      return NextResponse.json({ error: "该时间段已被预订，请另选时间" }, { status: 409 });
+
+    const validRules = ["daily", "weekdays", "weekly", "biweekly"];
+    const isRecurring = recurrenceRule && validRules.includes(recurrenceRule) && recurrenceEndDate;
+    if (isRecurring && recurrenceEndDate < date) {
+      return NextResponse.json({ error: "结束重复日期不能早于开始日期" }, { status: 400 });
     }
-    const booking = await prisma.booking.create({
-      data: {
-        userId: user.id,
-        roomId,
-        date,
-        startTime,
-        endTime,
-        bookerName: name,
-        purpose: purpose ?? null,
-      },
-      include: { room: true },
-    });
-    return NextResponse.json(booking);
+
+    const datesToBook: string[] = isRecurring
+      ? getRecurrenceDates(date, recurrenceRule!, recurrenceEndDate!)
+      : [date];
+
+    for (const d of datesToBook) {
+      const existing = await prisma.booking.findMany({
+        where: { roomId, date: d, status: "confirmed" },
+        select: { startTime: true, endTime: true },
+      });
+      if (hasConflict(startTime, endTime, existing)) {
+        return NextResponse.json(
+          { error: `日期 ${d} 该时段已被预订，请更换时间或结束重复日期` },
+          { status: 409 }
+        );
+      }
+    }
+
+    const groupId = isRecurring ? randomBytes(12).toString("hex") : null;
+
+    const created = await prisma.$transaction(
+      datesToBook.map((d) =>
+        prisma.booking.create({
+          data: {
+            userId: user.id,
+            roomId,
+            date: d,
+            startTime,
+            endTime,
+            bookerName: name,
+            purpose: purpose ?? null,
+            recurrenceGroupId: groupId,
+            recurrenceRule: isRecurring ? recurrenceRule! : null,
+            recurrenceEndDate: isRecurring ? recurrenceEndDate! : null,
+          },
+          include: { room: true },
+        })
+      )
+    );
+
+    return NextResponse.json(isRecurring ? { recurring: true, count: created.length, first: created[0] } : created[0]);
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "预订失败" }, { status: 500 });

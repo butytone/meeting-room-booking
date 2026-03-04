@@ -21,9 +21,19 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
   const [endTime, setEndTime] = useState("10:00");
   const [bookerName, setBookerName] = useState(defaultBookerName);
   const [purpose, setPurpose] = useState("");
+  const [recurrenceRule, setRecurrenceRule] = useState("");
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const RECURRENCE_OPTIONS = [
+    { value: "", label: "不重复" },
+    { value: "daily", label: "每天" },
+    { value: "weekdays", label: "每个工作日" },
+    { value: "weekly", label: "每周" },
+    { value: "biweekly", label: "每两周" },
+  ];
 
   const [roomAvailability, setRoomAvailability] = useState<RoomWithAvailability[] | null>(null);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
@@ -79,6 +89,14 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
       setError("预订人不能为空");
       return;
     }
+    if (recurrenceRule && !recurrenceEndDate) {
+      setError("请选择结束重复日期");
+      return;
+    }
+    if (recurrenceRule && recurrenceEndDate < date) {
+      setError("结束重复日期不能早于开始日期");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/bookings", {
@@ -91,6 +109,8 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
           endTime,
           bookerName: bookerName.trim() || undefined,
           purpose: purpose || undefined,
+          recurrenceRule: recurrenceRule || undefined,
+          recurrenceEndDate: recurrenceEndDate || undefined,
         }),
       });
       const data = await res.json();
@@ -101,7 +121,9 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
       setRoomId("");
       setDate("");
       setPurpose("");
-      setSuccess("预订成功！");
+      setRecurrenceRule("");
+      setRecurrenceEndDate("");
+      setSuccess(data.recurring ? `已成功创建 ${data.count} 次周期性预订` : "预订成功！");
       onSuccess?.();
       setTimeout(() => setSuccess(""), 4000);
     } finally {
@@ -190,6 +212,32 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
           startDate={date}
           days={7}
         />
+      )}
+
+      <div>
+        <label className="block text-sm text-gray-600">重复频率</label>
+        <select
+          value={recurrenceRule}
+          onChange={(e) => setRecurrenceRule(e.target.value)}
+          className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
+        >
+          {RECURRENCE_OPTIONS.map((opt) => (
+            <option key={opt.value || "none"} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+      {recurrenceRule && (
+        <div>
+          <label className="block text-sm text-gray-600">结束重复 <span className="text-red-500">*</span></label>
+          <input
+            type="date"
+            required={!!recurrenceRule}
+            min={date || today}
+            value={recurrenceEndDate}
+            onChange={(e) => setRecurrenceEndDate(e.target.value)}
+            className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
+          />
+        </div>
       )}
 
       <div>

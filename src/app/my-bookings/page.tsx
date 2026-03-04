@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import CancelBookingButton from "./CancelBookingButton";
+import BookingGroupRow from "./BookingGroupRow";
 
 export default async function MyBookingsPage() {
   const user = await getSession();
@@ -13,30 +13,34 @@ export default async function MyBookingsPage() {
     orderBy: [{ date: "asc" }, { startTime: "asc" }],
   });
 
+  const groups: { key: string; isSeries: boolean; first: (typeof bookings)[0]; count: number }[] = [];
+  const seenGroupIds = new Set<string>();
+  for (const b of bookings) {
+    if (b.recurrenceGroupId) {
+      if (!seenGroupIds.has(b.recurrenceGroupId)) {
+        seenGroupIds.add(b.recurrenceGroupId);
+        const sameGroup = bookings.filter((x) => x.recurrenceGroupId === b.recurrenceGroupId);
+        groups.push({ key: b.recurrenceGroupId, isSeries: true, first: sameGroup[0], count: sameGroup.length });
+      }
+    } else {
+      groups.push({ key: b.id, isSeries: false, first: b, count: 1 });
+    }
+  }
+
   return (
     <div>
       <h1 className="mb-6 text-xl font-semibold">我的预订</h1>
       <div className="space-y-3">
-        {bookings.map((b) => (
-          <div
-            key={b.id}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white p-4 shadow-sm"
-          >
-            <div>
-              <p className="font-medium">{b.room.name}</p>
-              <p className="text-sm text-gray-600">
-                {b.date} {b.startTime}–{b.endTime}
-                <span className="ml-2">预订人：{(b.bookerName && b.bookerName.trim()) ? b.bookerName.trim() : "—"}</span>
-              </p>
-              {b.purpose && (
-                <p className="text-sm text-gray-500">{b.purpose}</p>
-              )}
-            </div>
-            <CancelBookingButton bookingId={b.id} />
-          </div>
+        {groups.map((g) => (
+          <BookingGroupRow
+            key={g.key}
+            isSeries={g.isSeries}
+            first={g.first}
+            count={g.count}
+          />
         ))}
       </div>
-      {bookings.length === 0 && (
+      {groups.length === 0 && (
         <p className="text-gray-500">暂无预订。</p>
       )}
     </div>
