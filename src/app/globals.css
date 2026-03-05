@@ -13,3 +13,9 @@ body {
   color: var(--foreground);
   background: var(--background);
 }
+
+/* 防止手机端日期选择框超出容器（覆盖浏览器默认 min-width） */
+input[type="date"] {
+  min-width: 0;
+  max-width: 100%;
+}

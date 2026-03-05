@@ -24,7 +24,7 @@ export default async function BookPage({
   return (
     <div>
       <h1 className="mb-6 text-xl font-semibold">预订会议室</h1>
-      <div className="min-w-0 max-w-md">
+      <div className="w-full min-w-0 max-w-md overflow-hidden">
         <BookingForm rooms={rooms} defaultRoomId={defaultRoomId ?? undefined} defaultBookerName={user.name} />
       </div>
     </div>

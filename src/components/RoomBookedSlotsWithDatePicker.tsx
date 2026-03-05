@@ -20,7 +20,7 @@ export default function RoomBookedSlotsWithDatePicker({ roomId }: Props) {
           min={today}
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
-          className="mt-1 rounded border border-gray-300 px-3 py-2 text-sm"
+          className="mt-1 w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm"
         />
       </div>
       <RoomBookedSlotsTable roomId={roomId} startDate={startDate} days={7} />

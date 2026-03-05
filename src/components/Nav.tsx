@@ -94,8 +94,8 @@ export default function Nav({
   );
 
   return (
-    <nav className="border-b bg-white px-4 py-3 shadow-sm">
-      <div className="mx-auto max-w-6xl">
+    <nav className="relative border-b bg-white px-4 py-3 shadow-sm">
+      <div className="relative mx-auto max-w-6xl">
         <div className="flex min-h-[2.5rem] items-center justify-between gap-2">
           <Link href="/" className="shrink-0 text-lg font-semibold text-blue-600">
             会议室预订
@@ -139,10 +139,10 @@ export default function Nav({
           </div>
         </div>
 
-        {/* 手机端：下拉菜单面板（仅链接，不含学院和用户名） */}
+        {/* 手机端：悬浮下拉菜单（不占位、不推开下方内容） */}
         {mobileOpen && (
-          <div className="mt-3 md:hidden">
-            <div className="rounded-xl border border-gray-200 bg-gray-50/80 py-2 shadow-lg">
+          <div className="absolute left-0 right-0 top-full z-50 mt-1 md:hidden">
+            <div className="rounded-xl border border-gray-200 bg-white py-2 shadow-xl">
               {mobileMenuLinks}
             </div>
           </div>

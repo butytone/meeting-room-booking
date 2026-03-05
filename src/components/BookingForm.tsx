@@ -134,7 +134,7 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <form onSubmit={handleSubmit} className="min-w-0 space-y-4 rounded-lg border bg-white p-4 shadow-sm">
+    <form onSubmit={handleSubmit} className="min-w-0 w-full max-w-full overflow-hidden space-y-4 rounded-lg border bg-white p-4 shadow-sm">
       <h3 className="font-medium">新建预订</h3>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {success && <p className="text-sm text-green-600 font-medium">{success}</p>}
@@ -163,7 +163,7 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
         )}
       </div>
 
-      <div className="min-w-0">
+      <div className="min-w-0 w-full overflow-hidden">
         <label className="block text-sm text-gray-600">日期</label>
         <input
           type="date"
@@ -171,7 +171,8 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
           min={today}
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="mt-1 w-full min-w-0 max-w-full rounded border border-gray-300 bg-white px-3 py-2 box-border"
+          className="mt-1 w-full min-w-0 max-w-full rounded border border-gray-300 bg-white px-3 py-2 box-border [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+          style={{ minWidth: 0 }}
         />
       </div>
 
@@ -227,7 +228,7 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
         </select>
       </div>
       {recurrenceRule && (
-        <div className="min-w-0">
+        <div className="min-w-0 w-full overflow-hidden">
           <label className="block text-sm text-gray-600">结束重复 <span className="text-red-500">*</span></label>
           <input
             type="date"
@@ -235,7 +236,8 @@ export default function BookingForm({ rooms, defaultRoomId, defaultBookerName = 
             min={date || today}
             value={recurrenceEndDate}
             onChange={(e) => setRecurrenceEndDate(e.target.value)}
-            className="mt-1 w-full min-w-0 max-w-full rounded border border-gray-300 bg-white px-3 py-2 box-border"
+            className="mt-1 w-full min-w-0 max-w-full rounded border border-gray-300 bg-white px-3 py-2 box-border [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+            style={{ minWidth: 0 }}
           />
         </div>
       )}
