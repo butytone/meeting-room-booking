@@ -327,7 +327,7 @@ systemctl reload nginx
 
 ## 第十一步（可选）：以后如何更新代码
 
-当你改了代码并推送到 GitHub 后，在服务器上执行：
+当你改了代码并推送到 GitHub 后，在服务器上执行（**不要用 sudo**，用当初 clone 时的用户执行）：
 
 ```bash
 cd /var/www/meeting-book
@@ -457,6 +457,36 @@ sudo certbot --nginx -d 你的域名
    pm2 restart meeting-book
    ```
 5. **说明**：修改 JWT_SECRET 后，之前签发的登录态都会失效，所有用户需要重新登录，这是正常现象。
+
+**Q：git pull 报错 insufficient permission for adding an object to repository database .git/objects**
+
+- 说明当前用户对 `.git` 目录没有写权限，多半是之前用 **sudo git clone**，仓库属主是 root。
+- **一次性修复**：把整个项目目录的属主改成当前用户，之后都用该用户执行 git pull（不要再用 sudo）：
+  ```bash
+  sudo chown -R $(whoami):$(whoami) /var/www/meeting-book
+  cd /var/www/meeting-book
+  git pull
+  ```
+- 若 PM2 是用 root 启动的，可改为用当前用户启动，或保持 root 则用 `sudo chown -R root:root` 后继续用 `sudo git pull`（不推荐，建议用同一普通用户做 clone/pull 和 pm2）。
+
+**Q：执行 git pull 报错 GnuTLS recv error (-110) 或 TLS connection was non-properly terminated**
+
+- 这是连接 GitHub 时 TLS 被中断，常见于网络不稳定或访问 GitHub 受限（如国内服务器）。
+- **不要用 sudo git pull**：用当前登录用户执行 `cd /var/www/meeting-book` 后直接 `git pull`，否则可能权限或配置不对。
+- **可尝试**：
+  1. 多试几次：有时是临时网络问题。
+  2. 增大 HTTP 缓冲后重试：
+     ```bash
+     git config --global http.postBuffer 524288000
+     cd /var/www/meeting-book && git pull
+     ```
+  3. **改用 SSH 拉取**（需先在服务器配置 GitHub SSH 公钥）：
+     ```bash
+     cd /var/www/meeting-book
+     git remote set-url origin git@github.com:butytone/meeting-room-booking.git
+     git pull
+     ```
+  4. 若服务器在国内且无法直连 GitHub，可配置 HTTP 代理后再执行 `git pull`，或在本机拉取后通过 scp/rsync 把代码同步到服务器。
 
 **Q：数据库连不上**  
 - 确认服务器上 `.env` 里的 `DATABASE_URL` 和本地/Neon 控制台中的一致（尤其是密码和 `-pooler` 地址）。  
